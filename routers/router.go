@@ -27,4 +27,6 @@ func init() {
 		),
 	)
 	beego.AddNamespace(ns)
+
+	beego.Router("/hook", &controllers.HookController{}, "get,post:Hook")
 }

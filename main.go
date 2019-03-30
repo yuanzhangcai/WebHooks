@@ -11,5 +11,8 @@ func main() {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	}
+	logSetting := beego.AppConfig.String("logSetting")
+	beego.SetLogger("file", logSetting)
+
 	beego.Run()
 }
