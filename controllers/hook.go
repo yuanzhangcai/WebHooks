@@ -28,7 +28,7 @@ type HookController struct {
 
 func execGitShell(shell string) {
 	beego.Info("Do exec shell start...")
-	file := beego.AppConfig.String("gitShellDir") + shell + ".sh"
+	file := beego.AppConfig.String("gitShellDir") + shell
 	cmd := exec.Command("bash", "-c", file)
 
 	//显示运行的命令
@@ -57,17 +57,21 @@ func execGitShell(shell string) {
 }
 
 func (this *HookController) Hook() {
-
+	beego.Info("Hook start...")
 	body := this.Ctx.Input.RequestBody
 
 	var req HookReq
 	if ok := json.Unmarshal(body, &req); ok != nil {
-		beego.Info("Hook req to json failed.")
+		this.Data["json"] = map[string]interface{}{"sMsg": "Hook req to json failed.", "iRet": -1000}
+		this.ServeJSON()
+		beego.Error("Hook req to json failed.")
+		return
 	}
 
 	if req.Repository.Name == "" {
 		this.Data["json"] = map[string]interface{}{"sMsg": "Get Repository failde", "iRet": -1000}
 		this.ServeJSON()
+		beego.Error("Get Repository failde")
 		return
 	}
 	beego.Info("Repository = " + req.Repository.Name)
@@ -80,6 +84,7 @@ func (this *HookController) Hook() {
 	if signature == "" {
 		this.Data["json"] = map[string]interface{}{"sMsg": "No signature", "iRet": -1001}
 		this.ServeJSON()
+		beego.Error("No signature")
 		return
 	}
 
@@ -87,6 +92,7 @@ func (this *HookController) Hook() {
 	if len(arr) != 2 {
 		this.Data["json"] = map[string]interface{}{"sMsg": "Signature is not right", "iRet": -1002}
 		this.ServeJSON()
+		beego.Error("Signature is not right")
 		return
 	}
 
@@ -99,13 +105,15 @@ func (this *HookController) Hook() {
 	if hmacStr != arr[1] {
 		this.Data["json"] = map[string]interface{}{"sMsg": "Check signature faild", "iRet": -1003}
 		this.ServeJSON()
+		beego.Error("Check signature faild")
 		return
 	}
 
 	beego.Info("Git pull start...")
-	go execGitShell(req.Repository.Name + "Git")
+	go execGitShell(beego.AppConfig.String(req.Repository.Name + "Shell"))
 	beego.Info("Git pull end.")
 
 	this.Data["json"] = map[string]interface{}{"sMsg": "OK", "iRet": 0}
 	this.ServeJSON()
+	beego.Info("Hook end.")
 }
