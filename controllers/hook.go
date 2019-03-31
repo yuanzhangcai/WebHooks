@@ -71,7 +71,6 @@ func (this *HookController) Hook() {
 	key := []byte(beego.AppConfig.String("MySiteSecret"))
 	mac := hmac.New(sha1.New, key)
 	mac.Write(body)
-	//fmt.Printf("%x\n", mac.Sum(nil))
 	hmacStr := fmt.Sprintf("%x", mac.Sum(nil))
 	beego.Info("hmacStr = " + hmacStr)
 	if hmacStr != arr[1] {
@@ -79,8 +78,9 @@ func (this *HookController) Hook() {
 		this.ServeJSON()
 		return
 	}
+
 	beego.Info("Git pull start...")
-	execGitShell("GitMySite")
+	//execGitShell("GitMySite")
 	beego.Info("Git pull end.")
 
 	this.Data["json"] = map[string]interface{}{"sMsg": "OK", "iRet": 0}
