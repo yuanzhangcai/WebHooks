@@ -27,6 +27,7 @@ type HookController struct {
 }
 
 func execGitShell(shell string) {
+	beego.Info("Do exec shell start...")
 	file := beego.AppConfig.String("gitShellDir") + shell + ".sh"
 	cmd := exec.Command("bash", "-c", file)
 
@@ -52,6 +53,7 @@ func execGitShell(shell string) {
 		beego.Info(line)
 	}
 	cmd.Wait()
+	beego.Info("Do exec shell end.")
 }
 
 func (this *HookController) Hook() {
@@ -101,8 +103,7 @@ func (this *HookController) Hook() {
 	}
 
 	beego.Info("Git pull start...")
-	execGitShell(req.Repository.Name + "Git")
-
+	go execGitShell(req.Repository.Name + "Git")
 	beego.Info("Git pull end.")
 
 	this.Data["json"] = map[string]interface{}{"sMsg": "OK", "iRet": 0}

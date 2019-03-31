@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 cd /Users/zacyuan/Documents/MyWork/MySite/
 
