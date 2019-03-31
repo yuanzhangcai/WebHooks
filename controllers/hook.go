@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os/exec"
@@ -11,6 +12,14 @@ import (
 
 	"github.com/astaxie/beego"
 )
+
+type repository struct {
+	Name string `json:"name"`
+}
+
+type HookReq struct {
+	Repository repository `json:"repository"`
+}
 
 // Operations about Users
 type HookController struct {
@@ -49,6 +58,18 @@ func (this *HookController) Hook() {
 
 	body := this.Ctx.Input.RequestBody
 
+	var req HookReq
+	if ok := json.Unmarshal(body, &req); ok != nil {
+		beego.Info("Hook req to json failed.")
+	}
+
+	if req.Repository.Name == "" {
+		this.Data["json"] = map[string]interface{}{"sMsg": "Get Repository failde", "iRet": -1000}
+		this.ServeJSON()
+		return
+	}
+	beego.Info("Repository = " + req.Repository.Name)
+
 	//header := this.Ctx.Input.
 	signature := this.Ctx.Input.Header("X-Hub-Signature")
 	beego.Info("X-Hub-Signature:" + signature)
@@ -68,7 +89,7 @@ func (this *HookController) Hook() {
 	}
 
 	//hmac ,use sha1
-	key := []byte(beego.AppConfig.String("MySiteSecret"))
+	key := []byte(beego.AppConfig.String(req.Repository.Name + "Secret"))
 	mac := hmac.New(sha1.New, key)
 	mac.Write(body)
 	hmacStr := fmt.Sprintf("%x", mac.Sum(nil))
@@ -80,7 +101,8 @@ func (this *HookController) Hook() {
 	}
 
 	beego.Info("Git pull start...")
-	//execGitShell("GitMySite")
+	execGitShell(req.Repository.Name + "Git")
+
 	beego.Info("Git pull end.")
 
 	this.Data["json"] = map[string]interface{}{"sMsg": "OK", "iRet": 0}
